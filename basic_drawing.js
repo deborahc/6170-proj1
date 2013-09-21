@@ -5,6 +5,9 @@
 	var red = Color(255,0,0);
 	var green = Color(0,255,0);
 	var blue = Color(0,0,255);
+
+	var dodgerBlue = Color(30,144,255);
+	var darkOrange = Color(255,140,0);
     
 	// create the drawing pad object and associate with the canvas
 	pad = Pad(document.getElementById('canvas'));
@@ -16,22 +19,61 @@
 	var x_factor = pad.get_width() / MAX_X;
 	var y_factor = pad.get_height() / MAX_Y;
   
-	// draw a box
-	pad.draw_rectangle(Coord(0, 0), pad.get_width(), pad.get_height(), 10, black);
-
 	// draw some circles and squares inside
 	var RADIUS = 5;
 	var LINE_WIDTH = 2;
-	for (var i = 10; i < MAX_X; i = i + 10) {
-		for (var j = 10; j < MAX_Y; j = j + 10) {
-			// select circle or square according some arbitrary criterion
-			if (i % 20 == j % 20) {
-				pad.draw_circle(Coord(i*x_factor, j*y_factor),
-					RADIUS, LINE_WIDTH, green, green);
-			} else {
-				pad.draw_rectangle(Coord(i*x_factor-RADIUS, j*y_factor-RADIUS),
-					RADIUS*2, RADIUS*2, LINE_WIDTH, red);
+	var NUM_ROWS = 9;
+	var NUM_COLUMNS = 9;
+	var SCALE_FACTOR = 10;
+	var testBoard = Board(NUM_ROWS,NUM_COLUMNS);
+
+	testBoard.initializeEmptyBoard();
+	var testCell = testBoard.getCell(Coord(5,5));
+
+	var toad = [Coord(4,5), Coord(5,5), Coord(6,5), Coord(5,4), Coord(6,4), Coord(7,4)];
+	var blinker = [Coord(4,5), Coord(5,5), Coord(6,5)];
+	
+	testBoard.setTestAlive(toad);
+
+
+	var scaleCoord = function(index){
+		return (index +1) * SCALE_FACTOR;
+	}
+
+	var applyAll = function(task){
+		for (var i=0; i<NUM_ROWS; i++){
+			for (var j=0; j<NUM_COLUMNS; j++){
+				task(board, Coord(i,j))
+			}
+		}
+	}
+
+	var renderBoard = function(board){
+		pad.clear();
+		pad.draw_rectangle(Coord(0, 0), pad.get_width(), pad.get_height(), 10, darkOrange);
+
+		for (var i=0; i<NUM_ROWS; i++){
+			for (var j=0; j<NUM_COLUMNS; j++){
+				if (board.getCell(Coord(i,j)).getState() == true){
+					pad.draw_circle(Coord(scaleCoord(i)*x_factor, scaleCoord(j)*y_factor),
+					RADIUS, LINE_WIDTH, darkOrange, darkOrange);
+				}
+				else{
+				pad.draw_rectangle(Coord(scaleCoord(i)*x_factor-RADIUS, scaleCoord(j)*y_factor-RADIUS),
+					RADIUS*2, RADIUS*2, LINE_WIDTH, dodgerBlue);
 				}
 			}
 		}
-	}) ()
+	}
+
+	var playGameOfLife = function(board){
+		renderBoard(board);
+		testBoard.advanceGeneration();
+	}
+
+
+setInterval(function(){playGameOfLife(testBoard)}, 1000);
+
+
+}) ()
+
