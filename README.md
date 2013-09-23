@@ -1,4 +1,6 @@
 Project 1.1: Conway's Game of Life
+
+Github: https://github.com/6170-fa13/deborahc_proj1/tree/59a856457f94ec01ffed1bd27b43586f9ce1b4c0
 =====
 
 Overview:
