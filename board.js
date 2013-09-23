@@ -1,120 +1,115 @@
-	var Board = function(rows, columns, config){
-		var that = Object.create(Board.prototype);
-		var board = [];
+var Board = function(rows, columns, config){
+	var that = {};
+	// board will be a double array that holds a Cell object at each board[i][j] location
+	var board = [];
 
-		that.initializeEmptyBoard = function(){
-			for (var i=0; i<rows; i++){
-				board[i] = [];
-				for (var j=0; j<columns; j++){
-					board[i][j] = Cell(false);
-				}
-			}
-
-			determineCellNeighbors();
-		}
-
-		var withinBounds = function(coord){
-			return (coord.x >=0) && (coord.x < rows) && (coord.y >=0 ) && (coord.y<columns);
-		}
-
-		var determineCellNeighbors = function(){
-			for (var i=0; i<rows; i++){
-				for (var j=0; j<columns; j++){
-					for (var x=-1; x<2; x++){
-						for (var y =-1; y<2; y++){
-							if (!(x==0 && y==0) && withinBounds(Coord(i+x, j+y))){
-								board[i][j].getNeighbors().push(Coord(i+x, j+y))
-							}
-						}
-					}
-				}
+	// helper function that applies a task function to each coordinate (cell) on the board
+	var applyAll = function(task){
+		for (var i=0; i<rows; i++){
+			for (var j=0; j<columns; j++){
+				task(Coord(i,j));
 			}
 		}
-
-		that.getCell = function(coord){
-			return board[coord.x][coord.y];
-		}
-
-
-		that.getBoard = function(){
-			return board;
-		}
-
-		that.getDimensions = function(){
-		// coordinate of last element in grid 
-		return Coord(rows, columns);
 	}
 
-
-	that.countLivingNeighbors = function(coord){
-
-		var currentCell = that.getCell(coord);
-		var neighbors = currentCell.getNeighbors();
-		var livingNeighbors = 0;
-		for (i=0; i<neighbors.length; i++){
-			var neighborCoord = neighbors[i];
-			var neighborStatus = that.getCell(neighborCoord).getState();
-			if (neighborStatus == true){
-				livingNeighbors += 1;
+	// function that initializes a double array that represents a board, with a Cell object at each location, populates 
+	// the neighbors array of each Cell, and sets an initial configuration of cells to be alive
+	// takes in a config, a list of Coord objects that define which cells should be set to live in the beginning
+	that.initializeEmptyBoard = function(config){
+		for (var i=0; i<rows; i++){
+			board[i] = [];
+			for (var j=0; j<columns; j++){
+				board[i][j] = Cell(false);
 			}
 		}
-
-		return livingNeighbors;
+		applyAll(determineCellNeighbors);
+		setInitialConfig(config);
 	}
 
-	that.setTestAlive = function(coords){
+	// helper function that takes in a list of Coords, and sets the Cells at those locations to alive
+	var setInitialConfig = function(coords){
 		for (i=0; i<coords.length; i++){
 			var cell = that.getCell(coords[i]);
-			cell.setState(true);
+			cell.setCurrentState(true);
 		}
 	}
 
+	// helper function that determines the neighbors of a Cell and populates its neighbors array with their Coords
+	var determineCellNeighbors = function(coord){
+		for (var x=-1; x<2; x++){
+			for (var y =-1; y<2; y++){
+				if (!(x==0 && y==0) && withinBounds(Coord(x+coord.x, y+coord.y))){
+					that.getCell(coord).getNeighbors().push(Coord(x+coord.x, y+coord.y));
+				}
+			}
+		}
+	}
+
+	// function that takes in a Coord of a Cell and returns the number of living neighbors it has
+	that.countLivingNeighbors = function(coord){
+		var currentCell = that.getCell(coord);
+		var neighbors = currentCell.getNeighbors();
+		var numLivingNeighbors = 0;
+		for (i=0; i<neighbors.length; i++){
+			var neighborCoord = neighbors[i];
+			var neighborStatus = that.getCell(neighborCoord).isAlive();
+			if (neighborStatus == true){
+				numLivingNeighbors += 1;
+			}
+		}
+		return numLivingNeighbors;
+	}
+
+	// function that applies Game of Life rules to each Cell to determine if it will be alive or dead in the next generation
+	// propagates these updates to each Cell's status
 	that.advanceGeneration = function(){
-
-		for (var i=0; i<rows; i++){
-			for (var j=0; j<columns; j++){
-
-				var currentCell = that.getCell(Coord(i,j));		
-
-				var currentCellState = currentCell.getState();
-				var livingNeighbors = that.countLivingNeighbors(Coord(i,j));
-
-				if (currentCellState === true){
-					console.log('here');
-
-					if (livingNeighbors === 2 || livingNeighbors === 3){
-						currentCell.setNextState(true); // stay alive
-					}
-					else{
-						currentCell.setNextState(false);
-					}
-				}
-
-				else{
-					if (livingNeighbors === 3 ){
-						currentCell.setNextState(true);
-					}
-
-				}
-			}
-		}
-		updateCells();
+		applyAll(determineCellFate);
+		applyAll(updateCellStatus);
 	}
 
-	var updateCells = function(){
-		for (var i=0; i<rows; i++){
-			for (var j=0; j<columns; j++){
-
-				var currentCell = that.getCell(Coord(i,j));	
-				if (currentCell.getNextState() !== undefined){
-					currentCell.updateState();
-					currentCell.setNextState(undefined);
-				}
-
+	// function that applies Game of Life rules to a Cell located at Coord to determine if it will be alive or dead in the next generation
+	// stores the pending status in the Cell's nextState property
+	var determineCellFate = function(coord){
+		var currentCell = that.getCell(coord);
+		var currentCellState = currentCell.isAlive();
+		var livingNeighbors = that.countLivingNeighbors(coord);
+		// Rules from http://en.wikipedia.org/wiki/Conway%27s_game_of_life
+		if (currentCellState === true){
+			if (livingNeighbors === 2 || livingNeighbors === 3){
+				currentCell.setNextState(true); // stay alive
+			}
+			else{
+				currentCell.setNextState(false); // cell dies
 			}
 		}
+		else{
 
+			if (livingNeighbors === 3 ){
+				currentCell.setNextState(true);
+			}
+
+		}
 	}
-	return that;
+
+	// function to update a cell's current state to its pending nextState status
+	var updateCellStatus = function(coord){
+		var currentCell = that.getCell(coord);	
+		if (currentCell.getNextState() !== undefined){
+			currentCell.updateCurrentState();
+			currentCell.setNextState(undefined);
+		}
+	}
+
+	// helper function to check if given coordinate is within bounds of the board
+	var withinBounds = function(coord){
+		return (coord.x >=0) && (coord.x < rows) && (coord.y >=0 ) && (coord.y<columns);
+	}
+
+	// function to return a Cell at a specified Coord
+	that.getCell = function(coord){
+		return board[coord.x][coord.y];
+	}
+
+return that;
 };
 
