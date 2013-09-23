@@ -23,7 +23,7 @@
 	var NUM_COLUMNS = 9;
 	var SCALE_FACTOR = 10;
 
-	// initial Conway's Game of Life configurations 
+	// initial Conway's Game of Life configurations
 	var toad = [Coord(4,5), Coord(5,5), Coord(6,5), Coord(5,4), Coord(6,4), Coord(7,4)];
 	var blinker = [Coord(4,5), Coord(5,5), Coord(6,5)];
 	var beacon = [Coord(5,5), Coord(5,6), Coord(4,5), Coord(4,6), Coord(2,4), Coord(2,3), Coord(3,4), Coord(3,3)];
@@ -84,6 +84,7 @@
 
 	// Main 
 	var board = Board(NUM_ROWS,NUM_COLUMNS);
+	// choose toad configuration
 	board.initializeEmptyBoard(toad);
 	setInterval(function(){playGameOfLife(board)}, 1000);
 

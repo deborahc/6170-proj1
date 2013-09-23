@@ -1,4 +1,4 @@
-var Board = function(rows, columns, config){
+var Board = function(rows, columns){
 	var that = {};
 	// board will be a double array that holds a Cell object at each board[i][j] location
 	var board = [];
@@ -9,6 +9,13 @@ var Board = function(rows, columns, config){
 			for (var j=0; j<columns; j++){
 				task(Coord(i,j));
 			}
+		}
+	}
+
+	// simple assert function
+	var assert = function(predicted, msg){
+		if (!predicted){
+			throw ("Assertion failure: " + msg);
 		}
 	}
 
@@ -29,6 +36,10 @@ var Board = function(rows, columns, config){
 	// helper function that takes in a list of Coords, and sets the Cells at those locations to alive
 	var setInitialConfig = function(coords){
 		for (i=0; i<coords.length; i++){
+			// check to make sure coordinates are within bounds of board
+			assert(withinBounds(coords[i]), "Input coord " + coords[i].x + "," + coords[i].y + " is out of bounds!");
+			// assert (coords[i].y >= 0 && coords[i].y < columns, "Input y coordinate " + coords[i].y + " is out of bounds!");
+			// assert (coords[i].x >= 0 && coords[i].x < rows, "Input x coordinate " + coords[i].x + " is out of bounds!");
 			var cell = that.getCell(coords[i]);
 			cell.setCurrentState(true);
 		}
@@ -69,6 +80,7 @@ var Board = function(rows, columns, config){
 
 	// function that applies Game of Life rules to a Cell located at Coord to determine if it will be alive or dead in the next generation
 	// stores the pending status in the Cell's nextState property
+
 	var determineCellFate = function(coord){
 		var currentCell = that.getCell(coord);
 		var currentCellState = currentCell.isAlive();
@@ -108,6 +120,10 @@ var Board = function(rows, columns, config){
 	// function to return a Cell at a specified Coord
 	that.getCell = function(coord){
 		return board[coord.x][coord.y];
+	}
+
+	that.getBoard= function(){
+		return board;
 	}
 
 return that;
