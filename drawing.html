@@ -4,12 +4,21 @@
     <script src="graphics.js"></script>
     <script src="board.js"></script>
 	<script src="cell.js"></script>
+
+	<script src="jquery-1.10.2.js"></script>
+	<link rel="stylesheet" type="text/css" href="gameOfLife.css">
+
     <style>
         #canvas_container {position: absolute; left: 100px; top: 100px; width: 400px; height: 400px;}
     </style>
 </head>
 
 <body>
+
+
+<input type="button" value="Start game" id="startButton" >
+<input type="button" value="Stop game" id="stopButton" >
+
 
 <!--
 define the HTML canvas element that will hold the graphical output
@@ -18,10 +27,12 @@ define the HTML canvas element that will hold the graphical output
     <canvas id="canvas"></canvas>
 </div>
 
+
 <!--
 execute the JavaScript
 -->
-<script src="gameOfLife.js"></script>
+<script src="gameOfLifeDom.js"></script>
+
 
 </body>
 </html>

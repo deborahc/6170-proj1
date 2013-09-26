@@ -1,0 +1,14 @@
+body {
+    padding: 0;
+}
+
+.grid {
+    border: 5px solid #ccc;
+    border-width: 5px 0 0 5px;
+}
+
+.grid div {
+    border: 5px solid #ccc;
+    border-width: 0 5px 5px 0;
+    float: left;
+}

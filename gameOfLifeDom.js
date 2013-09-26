@@ -1,11 +1,12 @@
 (function () {
 	// define some colors
 
-	var dodgerBlue = Color(30,144,255);
+	// var dodgerBlue = Color(30,144,255);
 
-	var darkOrange = Color(255,140,0);
-    // var darkOrange = "#FF8C00";
-    // var dodgerBlue = "#1E90FF";
+	// var darkOrange = Color(255,140,0);
+    var darkOrange = "#FF8C00";
+    var dodgerBlue = "#1E90FF";
+    var white = "#FFFFFF";
 	// create the drawing pad object and associate with the canvas
 	pad = Pad(document.getElementById('canvas'));
 	pad.clear();
@@ -33,7 +34,7 @@
 
 	// Prefix for each div that represents a square
 	var divPrefix = 'Square';
-
+	var timerId = 0;
 
 	// simple assert function
 	var assert = function(predicted, msg){
@@ -62,9 +63,7 @@
 	// function that takes a Board and renders it on the canvas
 	// draws border and all cells
 	var renderBoard = function(board){
-		pad.clear();
 		// draw boarder 
-		pad.draw_rectangle(Coord(0, 0), pad.get_width(), pad.get_height(), BORDER_WIDTH, darkOrange);
 		applyAll(board, renderCell);
 	}
 
@@ -76,12 +75,13 @@
 		assert (coord.x >= 0 && coord.x < NUM_ROWS, 'Input x coordinate ' + coord.x + ' is out of bounds!');
 
 		if (board.getCell(coord).isAlive()){
-			pad.draw_circle(Coord(scaleCoord(coord.x)*x_factor, scaleCoord(coord.y)*y_factor),
-				RADIUS, LINE_WIDTH, darkOrange, darkOrange);
+			colorSquare(coord, darkOrange);
+			// pad.draw_circle(Coord(scaleCoord(coord.x)*x_factor, scaleCoord(coord.y)*y_factor),
+			// 	RADIUS, LINE_WIDTH, darkOrange, darkOrange);
 		}
 		else{
-			pad.draw_rectangle(Coord(scaleCoord(coord.x)*x_factor-RADIUS, scaleCoord(coord.y)*y_factor-RADIUS),
-				RADIUS*2, RADIUS*2, LINE_WIDTH, dodgerBlue);
+			colorSquare(coord, white);
+
 		}
 	}
 
@@ -93,12 +93,12 @@
 		board.advanceGeneration();
 	}
 
-	// inspired by http://jsfiddle.net/yijiang/nsYyc/1/
+	// adapted from http://jsfiddle.net/yijiang/nsYyc/1/
 	var createGrid = function(size, gridWidth, gridHeight) {
    	    var parent = $('<div />', {
 	        class: 'grid', 
-	        width: gridWidth  * size, 
-	        height: gridHeight  * size
+	        width: gridWidth * size, 
+	        height: gridHeight * size
 	    }).addClass('grid').appendTo('body');
 
 	    for (var i = 0; i < gridWidth; i++) {
@@ -116,17 +116,35 @@
 
 	var colorSquare = function(coord, color){
 		var divId = "#"+divPrefix+coord.x+'_'+coord.y;
-		console.log(divId);
-		$(divId).css('background-color', dodgerBlue);
+		$(divId).css('background-color', color);
 	}
+
+	var startGame = function(){
+		timerId = setInterval(function(){playGameOfLife(board)}, 1000);
+	} 
+
+	var stopGame = function(){
+		clearInterval(timerId);
+	}
+
+    $('#startButton').click(function(){
+       startGame();
+    });
+
+
+    $('#stopButton').click(function(){
+       stopGame();
+    });
 
 	// Main 
 	var board = Board(NUM_ROWS,NUM_COLUMNS);
 	// choose toad configuration
 	board.initializeEmptyBoard(toad);
-	// createGrid(50, 9,9);
+	createGrid(50, 9,9);
+
+
 	//colorSquare(Coord(5,2), dodgerBlue);
-	setInterval(function(){playGameOfLife(board)}, 1000);
+	// setInterval(function(){playGameOfLife(board)}, 1000);
 
 }) ()
 
