@@ -19,5 +19,19 @@ In addition, each Cell keeps a list of the coordinates of each neighbors; this w
 
 DOM Version:
 
+Overview:
 
+The Board and Cell data structure are unchanged from the previous implementation. This was made possible by the isolation enforced between the data structures/logic of the game, and the graphical rendering. 
+
+However, the cells in the Game of Life are not implemented using the DOM. The board displayed in the browser is a Grid, and each of its cells is a div. Cells are rendered as alive or dead by changing their color. 
+
+My extra feature was to allow the user to enter the speed at which the generations advanced, i.e. seconds before generation advance. 
+
+Design challenges:
+
+One major challenge was to find a way to relate the DOM grid and the Board data structure that performed the logic of the game. To do this, I gave each div a "divID_i_j" id that contained coordinate information, and used a dictionary with key: divId, value: Coord(i,j), the corresponding cell on the Board. This dictionary is used to collect all the list of cells the user has set to live and pass them into the Board class as its initial configuration. 
+
+Another challenge was to decide how to render cells as alive or dead on the DOM grid. To do this, I toggled the className of each cell between "alive" and "dead," and accessed all the divs using jquery. Graphically, being alive or dead meant a change in color, implemented by changing the css color attribute. 
+
+Finally, one design decision dealt with which edge cases with the user interaction to support. For example, in this implementation, a user cannot add cells to the grid while the game is being played. Though I agree that this would be a nice feature, the implementation was simpler when I decided not to handle this behavrio. However, I did handle the case that the user could add more cells after stopping a game, as the game state is saved after every stop. 
 

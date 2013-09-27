@@ -125,6 +125,10 @@
 
 	// function to start Game of Life 
 	var startGame = function(){
+		// taken as input from user
+		var speed = $("#speedButton").val();
+		console.log(speed);
+
 		// need to reset config after game is stopped
 		initialConfig = [];
 		$('div').each(function(){
@@ -136,7 +140,7 @@
 
 		});
 		board.initializeEmptyBoard(initialConfig);
-		timerId = setInterval(function(){playGameOfLife(board)}, 1000);
+		timerId = setInterval(function(){playGameOfLife(board)}, 1000*speed);
 	} 
 
 	// function to stop game by
