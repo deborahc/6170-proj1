@@ -17,7 +17,8 @@ In addition, each Cell keeps a list of the coordinates of each neighbors; this w
 
 ======
 
-DOM Version:
+Project 1.2: Conway's Game of Life - DOM version
+=====
 
 Overview:
 
