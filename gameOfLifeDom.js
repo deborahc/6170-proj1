@@ -1,40 +1,25 @@
 (function () {
 	// define some colors
-
-	// var dodgerBlue = Color(30,144,255);
-
-	// var darkOrange = Color(255,140,0);
     var darkOrange = "#FF8C00";
-    var dodgerBlue = "#1E90FF";
     var white = "#FFFFFF";
-	// create the drawing pad object and associate with the canvas
-	pad = Pad(document.getElementById('canvas'));
-	pad.clear();
-    
-	// set constants to be able to scale to any canvas size
-	var MAX_X = 100;
-	var MAX_Y = 100;
-	var x_factor = pad.get_width() / MAX_X;
-	var y_factor = pad.get_height() / MAX_Y;
-  
-	// draw some circles and squares inside
-	var RADIUS = 5;
-	var LINE_WIDTH = 2;
 
 	// default size of board
-	var BORDER_WIDTH = 10;
 	var NUM_ROWS = 9;
 	var NUM_COLUMNS = 9;
-	var SCALE_FACTOR = 10;
+	var BLOCK_SIZE = 50;
 
-	// initial Conway's Game of Life configurations
+	// initial Conway's Game of Life configurations - for debugging
 	var toad = [Coord(4,5), Coord(5,5), Coord(6,5), Coord(5,4), Coord(6,4), Coord(7,4)];
 	var blinker = [Coord(4,5), Coord(5,5), Coord(6,5)];
 	var beacon = [Coord(5,5), Coord(5,6), Coord(4,5), Coord(4,6), Coord(2,4), Coord(2,3), Coord(3,4), Coord(3,3)];
-
+	// list of Coords used by game to determine which cells are alive to start with 
+	var initialConfig = [];
 	// Prefix for each div that represents a square
 	var divPrefix = 'Square';
+	// initialize timer id
 	var timerId = 0;
+	// dictionary that has key: divID and value: Coord(i,j) representing where that square is on the Board object
+	var divToCoordDict = {};
 
 	// simple assert function
 	var assert = function(predicted, msg){
@@ -52,39 +37,69 @@
 		}
 	}
 
-
-
-
-	// function to scale coordinate index from Board coordinate to canvas coordinate
-	var scaleCoord = function(index){
-		return (index +1) * SCALE_FACTOR;
-	}
-
 	// function that takes a Board and renders it on the canvas
-	// draws border and all cells
 	var renderBoard = function(board){
-		// draw boarder 
 		applyAll(board, renderCell);
 	}
 
 	// function to draw each cell on board
-	// takes in a coordinate on a board and draws circle if cell is alive, and square otherwise
 	var renderCell = function(board, coord){
 		// check that given coordinate is within bounds of board
 		assert (coord.y >= 0 && coord.y < NUM_COLUMNS, 'Input y coordinate ' + coord.y + ' is out of bounds!');
 		assert (coord.x >= 0 && coord.x < NUM_ROWS, 'Input x coordinate ' + coord.x + ' is out of bounds!');
-
 		if (board.getCell(coord).isAlive()){
-			colorSquare(coord, darkOrange);
-			// pad.draw_circle(Coord(scaleCoord(coord.x)*x_factor, scaleCoord(coord.y)*y_factor),
-			// 	RADIUS, LINE_WIDTH, darkOrange, darkOrange);
+			colorAndSetLive(coord);
 		}
 		else{
-			colorSquare(coord, white);
-
+			colorAndSetDead(coord);
 		}
 	}
 
+	// function to create a grid of DIV elements
+	// adapted from http://jsfiddle.net/yijiang/nsYyc/1/
+	var createGrid = function(blockSize, gridWidth, gridHeight) {
+   	    var parent = $('<div />', {
+	        class: 'grid', 
+	        width: gridWidth * blockSize, 
+	        height: gridHeight * blockSize,
+	        className: 'squares'
+	    }).addClass('grid').appendTo('body');
+
+		for (var i = 0; i < gridWidth; i++) {
+		    for (var j = 0; j < gridHeight; j++) {
+		    	var squareId = divPrefix+i+'_'+j;
+				var square = $('<div />', {
+	    			id: squareId,
+	    			className: 'dead',	
+	    			width: blockSize - 5, 
+	    			height: blockSize - 5
+	    		});
+				square.appendTo(parent);
+				// store corresponding Coord object that maps where this grid is on Board object
+				divToCoordDict[squareId] = Coord(i,j);
+		    }
+		}
+		setClickHandlers();
+	}
+
+	// function that sets handlers on each square div to toggle between alive and dead
+	var setClickHandlers = function(){
+		$('div').each(function(){
+			$(this).click((function(div) {
+                return function() {
+                	if ($(this).attr('className')=='dead'){
+                		colorAndSetLive(divToCoordDict[$(this).attr('id')]);
+              		}
+
+              		else {
+              			if ($(this).attr('className')=='alive'){
+              			colorAndSetDead(divToCoordDict[$(this).attr('id')]);
+              		}
+                }
+          	}
+        })($(this)));
+		});
+	}
 
 	// function to render board and advance generation of all cells on board
 	// takes in Board object
@@ -93,58 +108,55 @@
 		board.advanceGeneration();
 	}
 
-	// adapted from http://jsfiddle.net/yijiang/nsYyc/1/
-	var createGrid = function(size, gridWidth, gridHeight) {
-   	    var parent = $('<div />', {
-	        class: 'grid', 
-	        width: gridWidth * size, 
-	        height: gridHeight * size
-	    }).addClass('grid').appendTo('body');
-
-	    for (var i = 0; i < gridWidth; i++) {
-	    	for(var j = 0; j < gridHeight; j++){
-
-	    		var squareId = divPrefix+i+'_'+j;
-	    		$('<div />', {
-	    			id: squareId,
-	    			width: size - 5, 
-	    			height: size - 5
-	    		}).appendTo(parent);
-	    	}
-	    }
-	}
-
-	var colorSquare = function(coord, color){
+	// function that takes in Coord object, colors and displays corresponding div on Grid to be alive
+	var colorAndSetLive = function(coord){
 		var divId = "#"+divPrefix+coord.x+'_'+coord.y;
-		$(divId).css('background-color', color);
+		// console.log(coord);
+		$(divId).css('background-color', darkOrange);
+		$(divId).attr('className', 'alive');
 	}
 
+	// function that takes in Coord object, colors and displays corresponding div on Grid to be dead
+	var colorAndSetDead = function(coord){
+		var divId = "#"+divPrefix+coord.x+'_'+coord.y;
+		$(divId).css('background-color', white);
+		$(divId).attr('className', 'dead');
+	}
+
+	// function to start Game of Life 
 	var startGame = function(){
+		// need to reset config after game is stopped
+		initialConfig = [];
+		$('div').each(function(){
+			// save all live boxes user has toggled 
+			if ($(this).attr('className') == 'alive'){
+				squareCoord = divToCoordDict[$(this).attr('id')];
+				initialConfig.push(squareCoord);
+			}
+
+		});
+		board.initializeEmptyBoard(initialConfig);
 		timerId = setInterval(function(){playGameOfLife(board)}, 1000);
 	} 
 
+	// function to stop game by
 	var stopGame = function(){
 		clearInterval(timerId);
 	}
 
+	// links start button to startGame function
     $('#startButton').click(function(){
        startGame();
     });
 
-
+    // links stop button to stopGame function
     $('#stopButton').click(function(){
        stopGame();
     });
 
-	// Main 
+	// Create empty grid 
 	var board = Board(NUM_ROWS,NUM_COLUMNS);
-	// choose toad configuration
-	board.initializeEmptyBoard(toad);
-	createGrid(50, 9,9);
-
-
-	//colorSquare(Coord(5,2), dodgerBlue);
-	// setInterval(function(){playGameOfLife(board)}, 1000);
+	createGrid(BLOCK_SIZE, NUM_ROWS,NUM_COLUMNS);
 
 }) ()
 
